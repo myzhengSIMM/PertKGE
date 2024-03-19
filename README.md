@@ -22,4 +22,6 @@ Others and detailed version can be touched in requirements.txt, conda environmen
 We proviewed demo to reproduce **Target inference scenario I** in our paper.
 
 ## Notes
+3/19      Upload data and model weight for **Secondary pharmacology study of K-756 by PertKGE**
+
 FUll Data & Code will coming soon!
