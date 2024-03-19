@@ -1,6 +1,6 @@
-# PertKGE
+# Identify compound-protein interaction with knowledge graph embedding of transcriptomic perturbation profiles
 PertKGE is a method designed to improve compound-protein interaction with knowledge graph embedding of transcriptomic perturbation profiles. 
-![](/Figure 1.tif)
+![](/Figure 1.jpg)
 
 ## Requirements
 Dependencies (with python >= 3.7): 
