@@ -1,1 +1,1 @@
-We proviewed RNA-seq of K-756, predicted results by PertKGE and best model in 
+We proviewed all data https://drive.google.com/drive/folders/1xgf8dMFch-xbskNgs0Gs6UZwJ16AiWKP?usp=drive_link related to **Secondary pharmacology study of K-756 by PertKGE** including RNA-seq of K-756, predicted results and weight of 5 saved models.
