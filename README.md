@@ -1,7 +1,7 @@
 # PertKGE
 PertKGE is a method designed to improve compound-protein interaction with knowledge graph embedding of transcriptomic perturbation profiles./
-This repo contains a PyTorch implementation for PertKGE
-![PertKGE](./Figure 1.jpg)
+This repo contains a PyTorch implementation for PertKGE/
+![](./Figure1.jpg)
 
 ## Requirements
 Dependencies (with python >= 3.7): 
