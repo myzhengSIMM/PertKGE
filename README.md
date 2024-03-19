@@ -19,7 +19,7 @@ cmapPy         4.0.1
 Others and detailed version can be touched in requirements.txt, conda environment is also recommended
 
 ## Demo
-We proviewed demo to reproduce *Target inference scenario I* in our paper.
+We proviewed demo to reproduce **Target inference scenario I** in our paper.
 
 ## Notes
 FUll Data & Code will coming soon!
