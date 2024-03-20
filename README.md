@@ -43,5 +43,6 @@ To get other biomedical knowledge graph for comparation, plz refer to [HetioNet]
 ## Notes
 ```
 3/19      Upload data and model weight for "Secondary pharmacology study of K-756 by PertKGE"
+3/20      Upload data and model weight for "PertKGE identified five new scaffold hits for ALDH1B1"
 ```
 FUll Data & Code will coming soon!
