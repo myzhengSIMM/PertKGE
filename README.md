@@ -19,22 +19,24 @@ cmapPy         4.0.1
 Others and detailed version can be touched in requirements.txt, conda environment is also recommended
 
 ## Demo
-We proviewed demo to reproduce **Target inference scenario I** in our paper.
+We provided demo to reproduce **Target inference scenario I** in our paper.
 
 ## Baseline
 In this work, we compare to following baseline in different settings
 ```
-Target Inference
+#Target Inference
 CMap, De, DeMAND, ProTINA, FL-DTD, SSGCN
 
-Virtual Screening
+#Virtual Screening
 SSGCN, Glide-SP
 
-Unbiased test
+#Unbiased test
 HetioNet, BioKG, PrimeKG
 ```
-[CMap](https://clue.io/) and [FL-DTD](http://menglab.pub/fldtd/) were tested in their website. DeMAND package was installed through [Bioconductor](https://www.bioconductor.org/packages/release/bioc/html/DeMAND.html). To test ProTINA, plz refer to [this repo](https://github.com/CABSEL/ProTINA/tree/master). 
-We recommend to test SSGCN using [pytorch version](https://github.com/myzhengSIMM/SSGCN).\
+[**CMap**](https://clue.io/) and [**FL-DTD**](http://menglab.pub/fldtd/) were tested in their website. **DeMAND package** was installed through [Bioconductor](https://www.bioconductor.org/packages/release/bioc/html/DeMAND.html). To test **ProTINA**, plz refer to [this repo](https://github.com/CABSEL/ProTINA/tree/master). 
+We recommend to test **SSGCN** using [pytorch version](https://github.com/myzhengSIMM/SSGCN).\
+**Glide-SP** is performed using Maestro of Schrödinger Suites (version 2020-4), and obtained poses were analyzed with PyMOL. [**Grid files**](https://drive.google.com/drive/folders/1wPcn7EaQldWbXONrRVd-ZOcBsNo6IXHw?usp=drive_link) are provided.\
+
 ## Notes
 ```
 3/19      Upload data and model weight for "Secondary pharmacology study of K-756 by PertKGE"
