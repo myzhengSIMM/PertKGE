@@ -38,7 +38,7 @@ We recommend to test **SSGCN** using [pytorch version](https://github.com/myzhen
   
 **Glide-SP** is performed using Maestro of Schrödinger Suites (version 2020-4), and obtained poses were analyzed with PyMOL. [**Grid files**](https://drive.google.com/drive/folders/1wPcn7EaQldWbXONrRVd-ZOcBsNo6IXHw?usp=drive_link) are provided.  
 
-To get other biomedical knowledge graph for comparation, plz refer to [HetioNet](https://github.com/hetio/hetionet/tree/main), [BioKG](https://github.com/dsi-bdi/biokg), PrimeKG(https://github.com/mims-harvard/PrimeKG). We also provide processed version in Data section.
+To get other biomedical knowledge graph for comparation, plz refer to [HetioNet](https://github.com/hetio/hetionet/tree/main), [BioKG](https://github.com/dsi-bdi/biokg), [PrimeKG](https://github.com/mims-harvard/PrimeKG). We also provide processed version in Data section.
 
 ## Notes
 ```
