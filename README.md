@@ -21,6 +21,20 @@ Others and detailed version can be touched in requirements.txt, conda environmen
 ## Demo
 We proviewed demo to reproduce **Target inference scenario I** in our paper.
 
+## Baseline
+In this work, we compare to following baseline in different settings
+```
+Target Inference
+CMap, De, DeMAND, ProTINA, FL-DTD, SSGCN
+
+Virtual Screening
+SSGCN, Glide-SP
+
+Unbiased test
+HetioNet, BioKG, PrimeKG
+```
+[CMap](https://clue.io/) and [FL-DTD](http://menglab.pub/fldtd/) were tested in their website. DeMAND package was installed through [Bioconductor](https://www.bioconductor.org/packages/release/bioc/html/DeMAND.html). To test ProTINA, plz refer to [this repo](https://github.com/CABSEL/ProTINA/tree/master). 
+We recommend to test SSGCN using [pytorch version](https://github.com/myzhengSIMM/SSGCN).\
 ## Notes
 ```
 3/19      Upload data and model weight for "Secondary pharmacology study of K-756 by PertKGE"
