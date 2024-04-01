@@ -6,7 +6,7 @@ PertKGE is a method designed to improve compound-protein interaction with knowle
 ![](./Figure1.jpg)
 
 ## Requirements
-To run our code, please install following main dependency packages
+To run our code, plz install following main dependency packages:
 ```
 python         3.7
 torch          1.13.1
@@ -22,9 +22,28 @@ Others and detailed version can be touched in requirements.txt, conda environmen
 We provided demo to reproduce **Target inference scenario I** in our paper.
 
 ## Running PertKGE  
-
+To run PertKGE, plz using following cmd:
+```
+cd src/
+python main.py --cause_file "../processed_data/target_inference_1_1/cause.txt"
+              --process_file "../processed_data/knowledge_graph/process.txt"
+              --effect_file "../processed_data/target_inference_1_1/effect.txt"
+              --test_file "../processed_data/target_inference_1_1/test.txt"
+              --h_dim 300
+              --margin 1.0
+              --lr 1e-4
+              --wd 1e-5
+              --n_neg 100
+              --batch_size 2048
+              --warm_up 10
+              --patients 5
+              --save_model
+              --save_model_path "../best_model/target_inference_1_1/"
+              --task "target_inference"
+              --run_name "target_inference_1_1"
+```
 ### Training process
-It is necessary to note that we use **unbiased evaluator** to monitor training process and perform early stopping.By using unbiased evaluator, We find that PertKGE first fits the dataset bias and starts learning the causal mapping at 10 epochs.\
+It is necessary to note that we use **unbiased evaluator** to monitor training process and perform early stopping.By using unbiased evaluator, We find that PertKGE first fits the dataset bias and starts learning the causal mapping at 10 epochs, which may explain why we set warm-up to 10.\
 ![](./fig/training_curve.png)
 
 ## Baseline
