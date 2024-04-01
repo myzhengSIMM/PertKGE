@@ -21,6 +21,12 @@ Others and detailed version can be touched in requirements.txt, conda environmen
 ## Demo
 We provided demo to reproduce **Target inference scenario I** in our paper.
 
+## Running PertKGE  
+
+### Training process
+It is necessary to note that we use **unbiased evaluator** to monitor training process and perform early stopping.By using unbiased evaluator, We find that PertKGE first fits the dataset bias and starts learning the causal mapping at 10 epochs.\
+![](./fig/training_curve.png)
+
 ## Baseline
 In this work, we compare to following baseline in different settings
 ```
