@@ -5,11 +5,19 @@ import numpy as np
 import tqdm
 import random
 from collections import defaultdict
+from scipy.stats import rankdata
 
 import torch
 
+# general function
+def sigmoid(x):
+    return 1 / (1 + np.exp(-x))
 
+def get_rank(a):
+    a = len(a) + 1 - rankdata(a)
 
+    return a.tolist()
+    
 def set_seeds(seed):  # seed只是固定了第n次的结果一样，所以在一次程序中第n次调用一个函数是不一样的
     "set random seeds"
     random.seed(seed)
