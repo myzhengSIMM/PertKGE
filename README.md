@@ -1,5 +1,5 @@
 # Identify compound-protein interaction with knowledge graph embedding of perturbation transcriptomics
-This repo contains a PyTorch implementation for PertKGE, which is model proposed in our paper **"Identify compound-protein interaction with knowledge graph embedding of transcriptomic perturbation transcriptomics"**.
+This repo contains a PyTorch implementation for PertKGE, which is model proposed in our paper **"Identifying compound-protein interactions with knowledge graph embedding of perturbation transcriptomics"**.
 
 ## Brief introduction
 PertKGE is a method designed to improve compound-protein interaction with knowledge graph embedding of perturbation transcriptomics.The key is to construct a biologically meaningful knowledge graph that breaks down genes into DNAs, messenger RNAs (mRNAs), long non-coding RNAs (lncRNAs), microRNAs (miRNAs), transcription factors (TFs), RNA-binding proteins (RBPs) and other protein-coding genes. This enables PertKGE to consider various fine-grained interactions between genes to simulate post-transcriptional and post-translational regulatory events in biological system, which intuitively aligns more closely with real world cellular responses to chemical perturbations.\
