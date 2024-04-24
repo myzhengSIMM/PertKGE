@@ -25,7 +25,7 @@ We provided demo to reproduce **Target inference scenario I** in our paper.
 To run PertKGE, plz using following cmd:
 ```
 $ cd src/
-$ python main.py --cause_file "../processed_data/target_inference_1_1/cause.txt"
+$ python train_pertkge.py --cause_file "../processed_data/target_inference_1_1/cause.txt"
                 --process_file "../processed_data/knowledge_graph/process.txt"
                 --effect_file "../processed_data/target_inference_1_1/effect.txt"
                 --test_file "../processed_data/target_inference_1_1/test.txt"
