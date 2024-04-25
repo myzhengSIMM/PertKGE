@@ -26,23 +26,23 @@ We provided demo to reproduce **Target inference scenario I** in our paper.
 To train PertKGE, plz use following cmd:
 ```
 $ cd src/
-$ python train_pertkge.py --cause_file "../processed_data/target_inference_1/cause.txt"
-                          --process_file "../processed_data/knowledge_graph/process.txt"
-                          --effect_file "../processed_data/target_inference_1/effect.txt"
-                          --test_file "../processed_data/target_inference_1/test.txt"
-                          --h_dim 300
-                          --margin 1.0
-                          --lr 1e-4
-                          --wd 1e-5
-                          --n_neg 100
-                          --batch_size 2048
-                          --warm_up 10
-                          --patients 5
-                          --warm_up 10
-                          --load_processed_data
-                          --processed_data_file "../processed_data/target_inference_1/"
-                          --save_model_path "../best_model/target_inference_1/"
-                          --task "target_inference"
+$ python train_pertkge.py --cause_file "../processed_data/target_inference_1/cause.txt"\
+                          --process_file "../processed_data/knowledge_graph/process.txt"\
+                          --effect_file "../processed_data/target_inference_1/effect.txt"\
+                          --test_file "../processed_data/target_inference_1/test.txt"\
+                          --h_dim 300\
+                          --margin 1.0\
+                          --lr 1e-4\
+                          --wd 1e-5\
+                          --n_neg 100\
+                          --batch_size 2048\
+                          --warm_up 10\
+                          --patients 5\
+                          --warm_up 10\
+                          --load_processed_data\
+                          --processed_data_file "../processed_data/target_inference_1/"\
+                          --save_model_path "../best_model/target_inference_1/"\
+                          --task "target_inference"\
                           --run_name "target_inference_1"
 ```
 
