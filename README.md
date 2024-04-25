@@ -50,7 +50,7 @@ $ python train_pertkge.py --cause_file "../processed_data/target_inference_1/cau
 It is necessary to note that we use **unbiased evaluator** to monitor training process and perform early stopping.By using unbiased evaluator, We find that PertKGE first fits the dataset bias and starts learning the causal mapping at 10 epochs, which may explain why we set warm-up to 10.\
 ![](./fig/training_curve.png)
 
-### Inference Staget
+### Inference Stage
 During the inference stage, users can query PertKGE with a compound or target of interest, depending on their objective, such as target inference or ligand VS.
 
 Users can follow the cmd in **target_inference.ipynb**.
