@@ -22,7 +22,7 @@ Others and detailed version can be found in requirements.txt, conda environment 
 We provided demo to reproduce **Target inference scenario I** in our paper.
 
 ## Running PertKGE  
-### Training Staget
+### Training Stage
 To train PertKGE, plz use following cmd:
 ```
 $ cd src/
