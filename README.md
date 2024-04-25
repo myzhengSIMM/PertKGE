@@ -16,14 +16,14 @@ pandas         1.1.5
 tqdm           4.64.1
 cmapPy         4.0.1
 ```
-Others and detailed version can be touched in requirements.txt, conda environment is also recommended
+Others and detailed version can be found in requirements.txt, conda environment is also recommended
 
 ## Demo
 We provided demo to reproduce **Target inference scenario I** in our paper.
 
 ## Running PertKGE  
 ### Training Staget
-To train PertKGE, plz using following cmd:
+To train PertKGE, plz use following cmd:
 ```
 $ cd src/
 $ python train_pertkge.py --cause_file "../processed_data/target_inference_1/cause.txt"
@@ -70,9 +70,9 @@ HetioNet, BioKG, PrimeKG
 [**CMap**](https://clue.io/) and [**FL-DTD**](http://menglab.pub/fldtd/) were tested in their website. **DeMAND package** was installed through [Bioconductor](https://www.bioconductor.org/packages/release/bioc/html/DeMAND.html). To test **ProTINA**, plz refer to [this repo](https://github.com/CABSEL/ProTINA/tree/master). 
 We recommend to test **SSGCN** using [pytorch version](https://github.com/myzhengSIMM/SSGCN).  
   
-**Glide-SP** is performed using Maestro of Schrödinger Suites (version 2020-4), and obtained poses were analyzed with PyMOL. [**Grid files**](https://drive.google.com/drive/folders/1wPcn7EaQldWbXONrRVd-ZOcBsNo6IXHw?usp=drive_link) are provided.  
+**Glide-SP** was performed using Maestro of Schrödinger Suites (version 2020-4), and obtained poses were analyzed with PyMOL. [**Grid files**](https://drive.google.com/drive/folders/1wPcn7EaQldWbXONrRVd-ZOcBsNo6IXHw?usp=drive_link) are provided.  
 
-To get other biomedical knowledge graph for comparation, plz refer to [HetioNet](https://github.com/hetio/hetionet/tree/main), [BioKG](https://github.com/dsi-bdi/biokg), [PrimeKG](https://github.com/mims-harvard/PrimeKG). We also provide processed version in Data section.
+To get other biomedical knowledge graphs for comparation, plz refer to [HetioNet](https://github.com/hetio/hetionet/tree/main), [BioKG](https://github.com/dsi-bdi/biokg), [PrimeKG](https://github.com/mims-harvard/PrimeKG). We also provide processed version in Data section.
 
 ## Data
 Other data is provided in [Google Drive](https://drive.google.com/file/d/1jFo0dDAnUOzMoKHFqPRM4pd_loTFwmMa/view?usp=sharing).
@@ -82,4 +82,4 @@ Other data is provided in [Google Drive](https://drive.google.com/file/d/1jFo0dD
 3/20      Upload data and model weight for "PertKGE identified five new scaffold hits for ALDH1B1"
 4/24      Upload src code and data. # Note:To be tested
 ```
-FUll Data & Code will coming soon!
+FUll Data & Code will come soon!
