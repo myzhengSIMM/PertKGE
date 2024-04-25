@@ -97,7 +97,7 @@ def five_fold_cv(args):
         best_hits100 = 0
         patients = 0
         for epoch in range(args.nepoch):
-            # 训练kg
+            # train kg
             running_loss = 0.0
             model.train()
             for batch in tqdm.tqdm(kgloader):
@@ -136,7 +136,7 @@ def five_fold_cv(args):
                                                                                 Hit30,
                                                                                 Hit100))
             if epoch > args.warm_up:
-                if Hit100 > best_hits100:  # 用MRR进行早停
+                if Hit100 > best_hits100:  # Hits@100 is used as metric for early stopping
                     best_hits100 = Hit100
                     patients = 0
                     if args.save_model:
@@ -191,7 +191,7 @@ if __name__ == '__main__':
 
     print('print args_dict!!!')
     args, args_dict = parse_args()
-    print(args_dict)  # 加入打印参数
+    print(args_dict) 
     print('_'*50)
 
     set_seeds(args.seed)
