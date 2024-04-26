@@ -35,6 +35,7 @@ $ python train_pertkge.py --cause_file "../processed_data/target_inference_1/cau
                           --lr 1e-4\
                           --wd 1e-5\
                           --n_neg 100\
+                          --mode 'reproduce'\
                           --batch_size 2048\
                           --warm_up 10\
                           --patients 5\
