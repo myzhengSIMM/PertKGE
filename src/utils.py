@@ -8,6 +8,9 @@ from collections import defaultdict
 from scipy.stats import rankdata
 
 import torch
+from torch.nn.functional import normalize
+from torch import nn, cat
+
 
 # general function
 def sigmoid(x):
@@ -17,8 +20,10 @@ def get_rank(a):
     a = len(a) + 1 - rankdata(a)
 
     return a.tolist()
-    
-def set_seeds(seed):  # seed只是固定了第n次的结果一样，所以在一次程序中第n次调用一个函数是不一样的
+
+
+
+def set_seeds(seed):
     "set random seeds"
     random.seed(seed)
     os.environ['PYTHONHASHSEED'] = str(seed)
@@ -188,33 +193,188 @@ def count_metrics(df, k=10,metrics='top'):
         return hit
     
 
-def unbiased_evaluator(df,
-                ent2id, rel2id, 
-                ent_emb, rel_emb,
-                pro2nc):
+def unbiased_evaluator(model_name,model,
+                        df,
+                        ent2id, rel2id, 
+                        # ent_emb, rel_emb,
+                        pro2nc):
     '''used for unbiased early stopping,
         hits@n was used as metircs
     '''
 
-    h_ranks = []
-    r_emb = rel_emb[rel2id['HAS_BINDING_TO']]
-    for i in tqdm.tqdm(range(len(df))):
-        c = df.iloc[i]['from']
-        p = df.iloc[i]['to']
-        
-        #
-        h_emb = ent_emb[ent2id[c]]
-        t_emb = ent_emb[ent2id[p]]
-        score = (h_emb * r_emb * t_emb).sum()
-        
-        # replace head
-        h_cand = pro2nc[p]
-        h_cand = [ent2id[x] for x in h_cand]
-        h_cand_emb = ent_emb[h_cand]  # (3000,dim)
-        h_score = (h_cand_emb * r_emb * t_emb).sum(dim=1)
 
-        rank = int(sum(h_score >= score).cpu()) + 1
-        h_ranks.append(rank)
+    if model_name == 'DistMult':
+        model.normalize_parameters()
+        model.eval()
+        with torch.no_grad():
+            ent_emb,rel_emb = model.get_embeddings() # (n_ent, emb_dim)
+
+            h_ranks = []
+            r_emb = rel_emb[rel2id['HAS_BINDING_TO']]
+            for i in tqdm.tqdm(range(len(df))):
+                c = df.iloc[i]['from']
+                p = df.iloc[i]['to']
+                
+                #
+                h_emb = ent_emb[ent2id[c]]
+                t_emb = ent_emb[ent2id[p]]
+                score = (h_emb * r_emb * t_emb).sum()
+                
+                # replace head
+                h_cand = pro2nc[p]
+                h_cand = [ent2id[x] for x in h_cand]
+                h_cand_emb = ent_emb[h_cand]  # (3000,dim)
+                h_score = (h_cand_emb * r_emb * t_emb).sum(dim=1)
+
+                rank = int(sum(h_score >= score).cpu()) + 1
+                h_ranks.append(rank)
+
+    elif model_name == 'TransE':
+        model.normalize_parameters()
+        model.eval()
+        with torch.no_grad():
+            ent_emb,rel_emb = model.get_embeddings() # (n_ent, emb_dim)
+
+            h_ranks = []
+            r_emb = rel_emb[rel2id['HAS_BINDING_TO']]
+            for i in tqdm.tqdm(range(len(df))):
+                c = df.iloc[i]['from']
+                p = df.iloc[i]['to']
+
+                h_emb = ent_emb[ent2id[c]]
+                t_emb = ent_emb[ent2id[p]]
+                score = -model.dissimilarity(h_emb.reshape(1,-1) + r_emb.reshape(1,-1), t_emb.reshape(1,-1))
+
+                # replace head
+                h_cand = pro2nc[p]
+                h_cand = [ent2id[x] for x in h_cand]
+                h_cand_emb = ent_emb[h_cand]  # (3000,dim)
+                n_decoys = len(h_cand)
+
+                h_score = - model.dissimilarity(h_cand_emb + r_emb.repeat(n_decoys,1), t_emb.repeat(n_decoys,1))
+
+                rank = int(sum(h_score >= score).cpu()) + 1
+                h_ranks.append(rank)
+
+    elif model_name == 'TransH':
+        model.normalize_parameters()
+        model.eval()
+        with torch.no_grad():
+            ent_emb = normalize(model.ent_emb.weight.data,p=2, dim=1)
+            rel_emb = model.rel_emb.weight.data
+            norm_vect = normalize(model.norm_vect.weight.data,p=2, dim=1)
+
+            h_ranks = []
+            r_emb = rel_emb[rel2id['HAS_BINDING_TO']]
+            r_norm = norm_vect[rel2id['HAS_BINDING_TO']]
+            for i in tqdm.tqdm(range(len(df))):
+                c = df.iloc[i]['from']
+                p = df.iloc[i]['to']
+                h_emb = ent_emb[ent2id[c]]
+                t_emb = ent_emb[ent2id[p]]
+
+                score = - model.dissimilarity(h_emb - (h_emb * r_norm).sum() * r_norm + r_emb, 
+                                    t_emb - (t_emb * r_norm).sum() * r_norm)
+
+                # replace head
+                h_cand = pro2nc[p]
+                h_cand = [ent2id[x] for x in h_cand]
+                h_cand_emb = ent_emb[h_cand]  # (3000,dim)
+                n_decoys = len(h_cand)
+
+                h_score = - model.dissimilarity(h_cand_emb - (h_cand_emb * r_norm).sum(dim=1).view(-1, 1) * r_norm + r_emb, 
+                                    (t_emb - (t_emb * r_norm).sum() * r_norm).repeat(n_decoys,1))  
+
+                rank = int(sum(h_score >= score).cpu()) + 1
+                h_ranks.append(rank)
+
+    elif model_name == 'ComplEx':
+        model.normalize_parameters()
+        model.eval()
+        with torch.no_grad():
+            re_ent_emb, im_ent_emb, re_rel_emb, im_rel_emb = model.get_embeddings()
+
+            h_ranks = []
+            r_re_emb = re_rel_emb[rel2id['HAS_BINDING_TO']]
+            r_im_emb = im_rel_emb[rel2id['HAS_BINDING_TO']]
+            for i in tqdm.tqdm(range(len(df))):
+                c = df.iloc[i]['from']
+                p = df.iloc[i]['to']
+                h_re_emb = re_ent_emb[ent2id[c]] 
+                h_im_emb = im_ent_emb[ent2id[c]]
+                t_re_emb = re_ent_emb[ent2id[p]]  
+                t_im_emb = im_ent_emb[ent2id[p]]
+
+                score = (h_re_emb * (r_re_emb * t_re_emb + r_im_emb * t_im_emb) + h_im_emb * (r_re_emb * t_im_emb - r_im_emb * t_re_emb)).sum()
+
+                # replace head
+                h_cand = pro2nc[p]
+                h_cand = [ent2id[x] for x in h_cand]
+                h_cand_re_emb = re_ent_emb[h_cand]
+                h_cand_im_emb = im_ent_emb[h_cand]
+                n_decoys = len(h_cand)
+
+                h_score = (h_cand_re_emb * (r_re_emb * t_re_emb + r_im_emb * t_im_emb) + 
+                    h_cand_im_emb * (r_re_emb * t_im_emb - r_im_emb * t_re_emb)).sum(dim=1)
+
+                rank = int(sum(h_score >= score).cpu()) + 1
+                h_ranks.append(rank)
+
+    elif model_name == 'ConvKB':
+        model.normalize_parameters()
+        model.eval()
+        with torch.no_grad():
+            ent_emb,rel_emb = model.get_embeddings() # (n_ent, emb_dim)
+
+            h_ranks = []
+            for i in tqdm.tqdm(range(len(df))):
+                c = df.iloc[i]['from']
+                p = df.iloc[i]['to']
+                
+                #
+                h_emb = ent_emb[ent2id[c]].view(1,1,-1)
+                r_emb = rel_emb[rel2id['HAS_BINDING_TO']].view(1,1,-1)
+                t_emb = ent_emb[ent2id[p]].view(1,1,-1)
+                concat = cat((h_emb, r_emb, t_emb), dim=1)
+                score = model.output(model.convlayer(concat).reshape(1, -1))[:, 1]
+                
+                # replace head
+                h_cand = pro2nc[p]
+                h_cand = [ent2id[x] for x in h_cand]
+                n_decoys = len(h_cand)
+
+                h_cand_emb = ent_emb[h_cand].view(n_decoys,1,-1)
+                r_emb = rel_emb[rel2id['HAS_BINDING_TO']].view(1,1,-1).repeat(n_decoys,1,1)
+                t_emb = ent_emb[ent2id[p]].view(1,1,-1).repeat(n_decoys,1,1)
+                concat = cat((h_cand_emb, r_emb, t_emb), dim=1)
+                h_score = model.output(model.convlayer(concat).reshape(n_decoys, -1))[:, 1]
+
+                rank = int(sum(h_score >= score).cpu()) + 1
+                h_ranks.append(rank)
+
+    else:
+        model.normalize_parameters()
+        model.eval()
+        with torch.no_grad():
+
+            h_ranks = []
+            for i in tqdm.tqdm(range(len(df))):
+                c = torch.LongTensor([ent2id[df.iloc[i]['from']]]).cuda()
+                r = torch.LongTensor([rel2id[df.iloc[i]['rel']]]).cuda()
+                p = torch.LongTensor([ent2id[df.iloc[i]['to']]]).cuda()
+
+                score = model.scoring_function(c,p,r)
+
+                # replace head
+                h_cand = pro2nc[df.iloc[i]['to']]
+                h_cand = [ent2id[x] for x in h_cand]
+
+                n_decoys = len(h_cand)
+
+                h_score = model.scoring_function(torch.LongTensor(h_cand).cuda(),p.repeat(n_decoys),r.repeat(n_decoys))
+
+                rank = int(sum(h_score >= score).cpu()) + 1
+                h_ranks.append(rank)
 
     h_MR = np.mean(h_ranks)
     h_MRR = sum([1 / x for x in h_ranks]) / len(h_ranks)
@@ -225,124 +385,421 @@ def unbiased_evaluator(df,
 
     return h_MR,h_MRR,h_Hit10,h_Hit30,h_Hit100
 
-def tester(df,
+def tester(model_name,model,
+           args,
+           df,
            ent2id, rel2id, 
-           ent_emb, rel_emb,
+        #    ent_emb, rel_emb,
            h_cand, t_cand,
-           task = 'target_inference'):
-    
-    metrics = []
-    ranks = []
-    r_emb = rel_emb[rel2id['HAS_BINDING_TO']]
+           task = 'target_inference',
+           ):
+    '''
+    target inference
+    '''
 
-    if task == 'target_inference':
-        for i in tqdm.tqdm(range(len(df))):
-            c = df.iloc[i]['from']
-            p = df.iloc[i]['to']
+    if model_name == 'DistMult':
+        model.normalize_parameters()
+        model.eval()
+        with torch.no_grad():
+            ent_emb,rel_emb = model.get_embeddings() # (n_ent, emb_dim)
+
+            metrics = []
+            ranks = []
+            r_emb = rel_emb[rel2id['HAS_BINDING_TO']]
+            if task == 'target_inference':
+                for i in tqdm.tqdm(range(len(df))):
+                    c = df.iloc[i]['from']
+                    p = df.iloc[i]['to']
+                    
+                    # to avoid ent not existing in kg
+                    try:
+                        h_emb = ent_emb[ent2id[c]]
+                        t_emb = ent_emb[ent2id[p]]
+                    except KeyError:
+                        ranks.append(len(t_cand))
+                        continue
+
+                    score = (h_emb * r_emb * t_emb).sum()
+                    
+                    # replace head
+                    t_cand_emb = ent_emb[t_cand]  # (2000,dim)
+                    t_score = (h_emb * r_emb * t_cand_emb).sum(dim=1)
+
+                    r = int(sum(t_score >= score).cpu())
+                    ranks.append(r)
+                
+                ranks = [1 if x == 0 else x for x in ranks]  # ensure no zero rank 
+                df['rank'] = ranks
+
+                for k in [10,30,100]:
+                    top = count_metrics(df, k, 'top')
+                    recall = count_metrics(df, k, 'recall')
+                    metrics.append(top)
+                    metrics.append(recall)
+
+                print('Top-10:{} | Top-30:{} | Top-100:{} | Recall@10:{} | Recall@30:{} | Recall@100:{}'.format(metrics[0],
+                                                                                                                metrics[2],
+                                                                                                                metrics[4],
+                                                                                                                metrics[1],
+                                                                                                                metrics[3],
+                                                                                                                metrics[5]))
+                
+            elif task == 'virtual_screening':
+                '''because ef is varied across different target,
+                so we count metrics like unbiased_test here.
+                '''
+                # FIXME: to do VS intead of TI
+                for i in tqdm.tqdm(range(len(df))):
+                    c = df.iloc[i]['from']
+                    p = df.iloc[i]['to']
+                    
+                    # to avoid ent not existing in kg
+                    try:
+                        h_emb = ent_emb[ent2id[c]]
+                        t_emb = ent_emb[ent2id[p]]
+                    except KeyError:
+                        ranks.append(len(t_cand))
+                        continue
+
+                    score = (h_emb * r_emb * t_emb).sum()
+                    
+                    # replace head
+                    t_cand_emb = ent_emb[t_cand]
+                    t_score = (h_emb * r_emb * t_cand_emb).sum(dim=1)
+
+                    r = int(sum(t_score >= score).cpu())
+                    ranks.append(r)
+                
+                ranks = [1 if x == 0 else x for x in ranks]  # ensure no zero rank 
+                df['rank'] = ranks
+
+                for k in [10,30,100]:
+                    hit = count_metrics(df, k, 'hit')
+                    metrics.append(hit)
+
+                print('Hits@10:{} | Hits@30:{} | Hits@100:{}'.format(metrics[0], 
+                                                                    metrics[1],
+                                                                    metrics[2]))
             
-            # to avoid ent not existing in kg
-            try:
-                h_emb = ent_emb[ent2id[c]]
-                t_emb = ent_emb[ent2id[p]]
-            except KeyError:
-                ranks.append(len(t_cand))
-                continue
+            elif task == 'unbiased_test':
+                '''
+                pos:neg = 1:1000
+                '''
 
-            score = (h_emb * r_emb * t_emb).sum()
-            
-            # replace head
-            t_cand_emb = ent_emb[t_cand]  # (2000,dim)
-            t_score = (h_emb * r_emb * t_cand_emb).sum(dim=1)
+                decoys_dict = np.load(args.processed_data_file + 'decoys_pro_wocpi.npy', allow_pickle = True).item()
 
-            r = int(sum(t_score >= score).cpu())
-            ranks.append(r)
-        
-        ranks = [1 if x == 0 else x for x in ranks]  # ensure no zero rank 
-        df['rank'] = ranks
+                for i in tqdm.tqdm(range(len(df))):
+                    c = df.iloc[i]['from']
+                    p = df.iloc[i]['to']
+                    
+                    # to avoid ent not existing in kg
+                    try:
+                        h_emb = ent_emb[ent2id[c]]
+                        t_emb = ent_emb[ent2id[p]]
+                    except KeyError:
+                        ranks.append(len(t_cand))
+                        continue
 
-        for k in [10,30,100]:
-            top = count_metrics(df, k, 'top')
-            recall = count_metrics(df, k, 'recall')
-            metrics.append(top)
-            metrics.append(recall)
+                    score = (h_emb * r_emb * t_emb).sum()
+                    
+                    # replace head
+                    decoys_id = [ent2id[x] for x in decoys_dict[p]]
+                    h_cand_emb = ent_emb[decoys_id]
+                    h_score = (h_cand_emb * r_emb * t_emb).sum(dim=1)
 
-        print('Top-10:{} | Top-30:{} | Top-100:{} | Recall@10:{} | Recall@30:{} | Recall@100:{}'.format(metrics[0],
-                                                                                                        metrics[2],
-                                                                                                        metrics[4],
-                                                                                                        metrics[1],
-                                                                                                        metrics[3],
-                                                                                                        metrics[5]))
-        
-    elif task == 'virtual_screening':
-        '''because ef is varied across different target,
-        so we count metrics like unbiased_test here.
-        '''
-        for i in tqdm.tqdm(range(len(df))):
-            c = df.iloc[i]['from']
-            p = df.iloc[i]['to']
-            
-            # to avoid ent not existing in kg
-            try:
-                h_emb = ent_emb[ent2id[c]]
-                t_emb = ent_emb[ent2id[p]]
-            except KeyError:
-                ranks.append(len(t_cand))
-                continue
+                    r = int(sum(h_score >= score).cpu())
+                    ranks.append(r)
+                
+                ranks = [1 if x == 0 else x for x in ranks]  # ensure no zero rank 
+                df['rank'] = ranks
 
-            score = (h_emb * r_emb * t_emb).sum()
-            
-            # replace head
-            t_cand_emb = ent_emb[t_cand]  # (2000,dim)
-            t_score = (h_emb * r_emb * t_cand_emb).sum(dim=1)
+                for k in [10,30,50]:
+                    hit = count_metrics(df, k, 'hit')
+                    metrics.append(hit)
 
-            r = int(sum(t_score >= score).cpu())
-            ranks.append(r)
-        
-        ranks = [1 if x == 0 else x for x in ranks]  # ensure no zero rank 
-        df['rank'] = ranks
+                print('Hits@10:{} | Hits@30:{} | Hits@50:{}'.format(metrics[0], 
+                                                                    metrics[1],
+                                                                    metrics[2]))
 
-        for k in [10,30,100]:
-            hit = count_metrics(df, k, 'hit')
-            metrics.append(hit)
+            return metrics
 
-        print('Hits@10:{} | Hits@30:{} | Hits@100:{}'.format(metrics[0], 
-                                                             metrics[1],
-                                                             metrics[2]))
-    
-    elif task == 'unbiased_test':
-        for i in tqdm.tqdm(range(len(df))):
-            c = df.iloc[i]['from']
-            p = df.iloc[i]['to']
-            
-            # to avoid ent not existing in kg
-            try:
-                h_emb = ent_emb[ent2id[c]]
-                t_emb = ent_emb[ent2id[p]]
-            except KeyError:
-                ranks.append(len(t_cand))
-                continue
+    elif model_name == 'TransE':
+        model.normalize_parameters()
+        model.eval()
+        with torch.no_grad():
+            ent_emb,rel_emb = model.get_embeddings() # (n_ent, emb_dim)
 
-            score = (h_emb * r_emb * t_emb).sum()
-            
-            # replace head
-            t_cand_emb = ent_emb[t_cand]  # (2000,dim)
-            t_score = (h_emb * r_emb * t_cand_emb).sum(dim=1)
+            metrics = []
+            ranks = []
+            r_emb = rel_emb[rel2id['HAS_BINDING_TO']]
+            if task == 'target_inference':
+                for i in tqdm.tqdm(range(len(df))):
+                    c = df.iloc[i]['from']
+                    p = df.iloc[i]['to']
+                    
+                    # to avoid ent not existing in kg
+                    try:
+                        h_emb = ent_emb[ent2id[c]]
+                        t_emb = ent_emb[ent2id[p]]
+                    except KeyError:
+                        ranks.append(len(t_cand))
+                        continue
 
-            r = int(sum(t_score >= score).cpu())
-            ranks.append(r)
-        
-        ranks = [1 if x == 0 else x for x in ranks]  # ensure no zero rank 
-        df['rank'] = ranks
+                    score = - model.dissimilarity(h_emb.reshape(1,-1) + r_emb.reshape(1,-1), t_emb.reshape(1,-1))
+                    # print(score)
+                    # print(score.shape)
+                    # replace head
+                    t_cand_emb = ent_emb[t_cand]
+                    n_decoys = len(t_cand)
+                    
+                    t_score = - model.dissimilarity(h_emb.repeat(n_decoys,1) + r_emb.repeat(n_decoys,1), t_cand_emb)
+                    # print(t_score.shape)
 
-        for k in [10,30,100]:
-            hit = count_metrics(df, k, 'hit')
-            metrics.append(hit)
+                    r = int(sum(t_score >= score).cpu())
+                    # print(r)
+                    ranks.append(r)
+                
+                ranks = [1 if x == 0 else x for x in ranks]  # ensure no zero rank 
+                df['rank'] = ranks
 
-        print('Hits@10:{} | Hits@30:{} | Hits@100:{}'.format(metrics[0], 
-                                                             metrics[1],
-                                                             metrics[2]))
+                for k in [10,30,100]:
+                    top = count_metrics(df, k, 'top')
+                    recall = count_metrics(df, k, 'recall')
+                    metrics.append(top)
+                    metrics.append(recall)
 
-    return metrics
+                print('Top-10:{} | Top-30:{} | Top-100:{} | Recall@10:{} | Recall@30:{} | Recall@100:{}'.format(metrics[0],
+                                                                                                                metrics[2],
+                                                                                                                metrics[4],
+                                                                                                                metrics[1],
+                                                                                                                metrics[3],
+                                                                                                                metrics[5]))
+
+            return metrics
+
+    elif model_name == 'TransH':
+        model.normalize_parameters()
+        model.eval()
+        with torch.no_grad():
+            ent_emb = normalize(model.ent_emb.weight.data,p=2, dim=1)
+            rel_emb = model.rel_emb.weight.data
+            norm_vect = normalize(model.norm_vect.weight.data,p=2, dim=1)
+
+            metrics = []
+            ranks = []
+            r_emb = rel_emb[rel2id['HAS_BINDING_TO']]
+            r_norm = norm_vect[rel2id['HAS_BINDING_TO']]
+            if task == 'target_inference':
+                for i in tqdm.tqdm(range(len(df))):
+                    c = df.iloc[i]['from']
+                    p = df.iloc[i]['to']
+                    
+                    # to avoid ent not existing in kg
+                    try:
+                        h_emb = ent_emb[ent2id[c]]
+                        t_emb = ent_emb[ent2id[p]]
+                    except KeyError:
+                        ranks.append(len(t_cand))
+                        continue
+
+                    score = - model.dissimilarity(h_emb - (h_emb * r_norm).sum() * r_norm + r_emb, 
+                                    t_emb - (t_emb * r_norm).sum() * r_norm)
+                    # print(score)
+                    # print(score.shape)
+                    # replace head
+                    t_cand_emb = ent_emb[t_cand]
+                    n_decoys = len(t_cand)
+                    
+                    t_score = - model.dissimilarity((h_emb - (h_emb * r_norm).sum() * r_norm + r_emb).repeat(n_decoys,1), 
+                                    t_cand_emb - (t_cand_emb * r_norm).sum(dim=1).view(-1,1) * r_norm)  # 应该能自动广播的
+
+                    r = int(sum(t_score >= score).cpu())
+                    # print(r)
+                    ranks.append(r)
+                
+                ranks = [1 if x == 0 else x for x in ranks]  # ensure no zero rank 
+                df['rank'] = ranks
+
+                for k in [10,30,100]:
+                    top = count_metrics(df, k, 'top')
+                    recall = count_metrics(df, k, 'recall')
+                    metrics.append(top)
+                    metrics.append(recall)
+
+                print('Top-10:{} | Top-30:{} | Top-100:{} | Recall@10:{} | Recall@30:{} | Recall@100:{}'.format(metrics[0],
+                                                                                                                metrics[2],
+                                                                                                                metrics[4],
+                                                                                                                metrics[1],
+                                                                                                                metrics[3],
+                                                                                                                metrics[5]))
+
+            return metrics
+
+    elif model_name == 'ComplEx':
+        model.normalize_parameters()
+        model.eval()
+        with torch.no_grad():
+            re_ent_emb, im_ent_emb, re_rel_emb, im_rel_emb = model.get_embeddings()
+
+            metrics = []
+            ranks = []
+            r_re_emb = re_rel_emb[rel2id['HAS_BINDING_TO']]
+            r_im_emb = im_rel_emb[rel2id['HAS_BINDING_TO']]
+            if task == 'target_inference':
+                for i in tqdm.tqdm(range(len(df))):
+                    c = df.iloc[i]['from']
+                    p = df.iloc[i]['to']
+                    
+                    # to avoid ent not existing in kg
+                    try:
+                        h_re_emb = re_ent_emb[ent2id[c]] 
+                        h_im_emb = im_ent_emb[ent2id[c]]
+                        t_re_emb = re_ent_emb[ent2id[p]]  
+                        t_im_emb = im_ent_emb[ent2id[p]]
+                    except KeyError:
+                        ranks.append(len(t_cand))
+                        continue
+
+                    score = (h_re_emb * (r_re_emb * t_re_emb + r_im_emb * t_im_emb) + h_im_emb * (r_re_emb * t_im_emb - r_im_emb * t_re_emb)).sum()
+
+                    t_cand_re_emb = re_ent_emb[t_cand]
+                    t_cand_im_emb = im_ent_emb[t_cand]
+                    n_decoys = len(t_cand)
+                    
+                    t_score = (h_re_emb * (r_re_emb * t_cand_re_emb + r_im_emb * t_cand_im_emb) + 
+                                 h_im_emb * (r_re_emb * t_cand_im_emb - r_im_emb * t_cand_re_emb)).sum(dim=1)
+
+                    r = int(sum(t_score >= score).cpu())
+                    # print(r)
+                    ranks.append(r)
+                
+                ranks = [1 if x == 0 else x for x in ranks]  # ensure no zero rank 
+                df['rank'] = ranks
+
+                for k in [10,30,100]:
+                    top = count_metrics(df, k, 'top')
+                    recall = count_metrics(df, k, 'recall')
+                    metrics.append(top)
+                    metrics.append(recall)
+
+                print('Top-10:{} | Top-30:{} | Top-100:{} | Recall@10:{} | Recall@30:{} | Recall@100:{}'.format(metrics[0],
+                                                                                                                metrics[2],
+                                                                                                                metrics[4],
+                                                                                                                metrics[1],
+                                                                                                                metrics[3],
+                                                                                                                metrics[5]))
+
+            return metrics
+
+    elif model_name == 'ConvKB':
+        model.normalize_parameters()
+        model.eval()
+        with torch.no_grad():
+            ent_emb,rel_emb = model.get_embeddings() # (n_ent, emb_dim)
+
+            metrics = []
+            ranks = []
+            if task == 'target_inference':
+                for i in tqdm.tqdm(range(len(df))):
+                    c = df.iloc[i]['from']
+                    p = df.iloc[i]['to']
+                    
+                    # to avoid ent not existing in kg
+                    try:
+                        h_emb = ent_emb[ent2id[c]]
+                        t_emb = ent_emb[ent2id[p]]
+                    except KeyError:
+                        ranks.append(len(t_cand))
+                        continue
+
+
+                    h_emb = ent_emb[ent2id[c]].view(1,1,-1)
+                    r_emb = rel_emb[rel2id['HAS_BINDING_TO']].view(1,1,-1)
+                    t_emb = ent_emb[ent2id[p]].view(1,1,-1)
+                    concat = cat((h_emb, r_emb, t_emb), dim=1)
+                    score = model.output(model.convlayer(concat).reshape(1, -1))[:, 1]
+                    # print(score)
+
+
+                    # replace tail
+                    n_decoys = len(t_cand)
+                    h_emb = ent_emb[ent2id[c]].view(1,1,-1).repeat(n_decoys,1,1)
+                    r_emb = rel_emb[rel2id['HAS_BINDING_TO']].view(1,1,-1).repeat(n_decoys,1,1)
+                    t_cand_emb = ent_emb[t_cand].view(n_decoys,1,-1)
+                    concat = cat((h_emb, r_emb, t_cand_emb), dim=1)
+
+                    t_score = model.output(model.convlayer(concat).reshape(n_decoys, -1))[:, 1]
+                    # print(t_score.shape)
+
+                    r = int(sum(t_score >= score).cpu())
+                    # print(r)
+                    ranks.append(r)
+                
+                ranks = [1 if x == 0 else x for x in ranks]  # ensure no zero rank 
+                df['rank'] = ranks
+
+                for k in [10,30,100]:
+                    top = count_metrics(df, k, 'top')
+                    recall = count_metrics(df, k, 'recall')
+                    metrics.append(top)
+                    metrics.append(recall)
+
+                print('Top-10:{} | Top-30:{} | Top-100:{} | Recall@10:{} | Recall@30:{} | Recall@100:{}'.format(metrics[0],
+                                                                                                                metrics[2],
+                                                                                                                metrics[4],
+                                                                                                                metrics[1],
+                                                                                                                metrics[3],
+                                                                                                                metrics[5]))
+
+            return metrics
+
+    else:
+        model.normalize_parameters()
+        model.eval()
+        with torch.no_grad():
+            metrics = []
+            ranks = []
+            if task == 'target_inference':
+                for i in tqdm.tqdm(range(len(df))):
+                    try:
+                        c = torch.LongTensor([ent2id[df.iloc[i]['from']]]).cuda()
+                        r = torch.LongTensor([rel2id[df.iloc[i]['rel']]]).cuda()
+                        p = torch.LongTensor([ent2id[df.iloc[i]['to']]]).cuda()
+                    except KeyError:
+                        ranks.append(len(t_cand))
+                        continue
+
+                    score = model.scoring_function(c,p,r)
+                    # print(score)
+                    # print(score.shape)
+                    # replace head
+                    n_decoys = len(t_cand)
+                    
+                    t_score = model.scoring_function(c.repeat(n_decoys),torch.LongTensor(t_cand).cuda(),r.repeat(n_decoys))
+                    # print(t_score.shape)
+
+                    r = int(sum(t_score >= score).cpu())
+                    # print(r)
+                    ranks.append(r)
+                
+                ranks = [1 if x == 0 else x for x in ranks]  # ensure no zero rank 
+                df['rank'] = ranks
+
+                for k in [10,30,100]:
+                    top = count_metrics(df, k, 'top')
+                    recall = count_metrics(df, k, 'recall')
+                    metrics.append(top)
+                    metrics.append(recall)
+
+                print('Top-10:{} | Top-30:{} | Top-100:{} | Recall@10:{} | Recall@30:{} | Recall@100:{}'.format(metrics[0],
+                                                                                                                metrics[2],
+                                                                                                                metrics[4],
+                                                                                                                metrics[1],
+                                                                                                                metrics[3],
+                                                                                                                metrics[5]))
+
+            return metrics
+
 
 
 def inference(ent,
@@ -350,7 +807,8 @@ def inference(ent,
             ent_emb, rel_emb,
             h_cand, t_cand,
             task = 'target_inference'):
-    
+    # NOTE:only for DistMult
+
     r_emb = rel_emb[rel2id['HAS_BINDING_TO']]
 
     if task == 'target_inference':
