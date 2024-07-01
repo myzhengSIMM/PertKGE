@@ -16,7 +16,6 @@ pandas         1.1.5
 tqdm           4.64.1
 cmapPy         4.0.1
 ```
-Others and detailed version can be found in requirements.txt, conda environment is also recommended
 
 ## Demo
 We provided demo to reproduce **Target inference scenario I** in our paper.
