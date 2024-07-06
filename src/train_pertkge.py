@@ -104,10 +104,10 @@ def five_fold_cv(args):
                     h_cand,t_cand,
                     args.task)
 
+        # train
         best_mrr = 0
         patients = 0
         for epoch in range(args.nepoch):
-            # 训练kg
             running_loss = 0.0
             model.train()
             for batch in tqdm.tqdm(kgloader):
