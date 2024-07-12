@@ -7,8 +7,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn import Embedding
 from torch.nn import functional as F, Parameter
-
-from torch.utils.data import DataLoader
 from torch.nn.init import xavier_uniform_
 
 # This file is used for loading extra model not be included in TorchKGE package
