@@ -1,7 +1,7 @@
 # Identifying compound-protein interactions with knowledge graph embedding of perturbation transcriptomics
 This repo contains a PyTorch implementation for PertKGE, which is model proposed in our paper **"Identifying compound-protein interactions with knowledge graph embedding of perturbation transcriptomics"**.
 
-## Brief introduction
+## Brief Introduction
 PertKGE is a method designed to improve compound-protein interaction with knowledge graph embedding of perturbation transcriptomics.The key is to construct a biologically meaningful knowledge graph that breaks down genes into DNAs, messenger RNAs (mRNAs), long non-coding RNAs (lncRNAs), microRNAs (miRNAs), transcription factors (TFs), RNA-binding proteins (RBPs) and other protein-coding genes. This enables PertKGE to consider various fine-grained interactions between genes to simulate post-transcriptional and post-translational regulatory events in biological system, which intuitively aligns more closely with real world cellular responses to chemical perturbations.\
 ![](./fig/Figure1.jpg)
 
@@ -75,7 +75,7 @@ We recommend to test **SSGCN** using [pytorch version](https://github.com/myzhen
   
 **Glide-SP** was performed using Maestro of Schrödinger Suites (version 2020-4), and obtained poses were analyzed with PyMOL. [**Grid files**](https://drive.google.com/drive/folders/1wPcn7EaQldWbXONrRVd-ZOcBsNo6IXHw?usp=drive_link) are provided.  
 
-To get other biomedical knowledge graphs for comparation, plz refer to [HetioNet](https://github.com/hetio/hetionet/tree/main), [BioKG](https://github.com/dsi-bdi/biokg), [PrimeKG](https://github.com/mims-harvard/PrimeKG). We also provide processed version in Data section.
+To get other biomedical knowledge graphs for comparation, plz refer to [HetioNet](https://github.com/hetio/hetionet/tree/main), [BioKG](https://github.com/dsi-bdi/biokg), [PrimeKG](https://github.com/mims-harvard/PrimeKG).
 
 
 ## Notes
