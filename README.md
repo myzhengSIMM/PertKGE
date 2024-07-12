@@ -21,6 +21,7 @@ cmapPy         4.0.1
 We provided demo to reproduce **Target inference scenario I** in our paper.
 
 ## Running PertKGE
+### Data & Code Prepare
 To run PertKGE, plz clone the repo, download the extra data from [Google Drive](https://drive.google.com/file/d/1jFo0dDAnUOzMoKHFqPRM4pd_loTFwmMa/view?usp=sharing) and extract the files in the current directory.
 
 ### Training Stage
@@ -76,12 +77,13 @@ We recommend to test **SSGCN** using [pytorch version](https://github.com/myzhen
 
 To get other biomedical knowledge graphs for comparation, plz refer to [HetioNet](https://github.com/hetio/hetionet/tree/main), [BioKG](https://github.com/dsi-bdi/biokg), [PrimeKG](https://github.com/mims-harvard/PrimeKG). We also provide processed version in Data section.
 
-## Data
-Other data is provided in [Google Drive](https://drive.google.com/file/d/1jFo0dDAnUOzMoKHFqPRM4pd_loTFwmMa/view?usp=sharing).
+
 ## Notes
 ```
 3/19      Upload data and model weight for "Secondary pharmacology study of K-756 by PertKGE"
 3/20      Upload data and model weight for "PertKGE identified five new scaffold hits for ALDH1B1"
-4/24      Upload src code and data. # Note:To be tested
+4/24      Upload src code and data.
 ```
-FUll Data & Code will come soon!
+
+## Contact
+nishengkun@simm.ac.cn
