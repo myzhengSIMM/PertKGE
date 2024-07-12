@@ -6,7 +6,7 @@ PertKGE is a method designed to improve compound-protein interaction with knowle
 ![](./fig/Figure1.jpg)
 
 ## Requirements
-To run our code, plz install following main dependency packages:
+To run our code, following main dependency packages are needed:
 ```
 python         3.7
 torch          1.13.1
@@ -20,9 +20,11 @@ cmapPy         4.0.1
 ## Demo
 We provided demo to reproduce **Target inference scenario I** in our paper.
 
-## Running PertKGE  
+## Running PertKGE
+To run PertKGE, plz clone the repo, download the extra data from [Google Drive](https://drive.google.com/file/d/1jFo0dDAnUOzMoKHFqPRM4pd_loTFwmMa/view?usp=sharing) and extract the files in the current directory.
+
 ### Training Stage
-To train PertKGE, plz use following cmd:
+Using following cmd to train the PertKGE by replacing **file_path**:
 ```
 $ cd src/
 $ python train_pertkge.py --cause_file "../processed_data/target_inference_1/cause.txt"\
@@ -53,7 +55,7 @@ It is necessary to note that we use **unbiased evaluator** to monitor training p
 ### Inference Stage
 During the inference stage, users can query PertKGE with a compound or target of interest, depending on their objective, such as target inference or ligand VS.
 
-Users can follow the cmd in **target_inference.ipynb**.
+Users can follow the cmd in **target_inference.ipynb** or **virtual_screening.ipynb**.
 
 ## Baseline
 In this work, we compare to following baseline in different settings
