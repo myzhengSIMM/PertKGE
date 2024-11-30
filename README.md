@@ -84,6 +84,8 @@ To get other biomedical knowledge graphs for comparation, plz refer to [HetioNet
 3/20      Upload data and model weight for "PertKGE identified five new scaffold hits for ALDH1B1"
 4/24      Upload src code and data.
 ```
+## Cite
+Shengkun Ni, Xiangtai Kong, Yingying Zhang, et al. Identifying compound-protein interactions with knowledge graph embedding of perturbation transcriptomics. Cell Genom. (2024).
 
 ## Contact
 nishengkun@simm.ac.cn
