@@ -88,4 +88,4 @@ To get other biomedical knowledge graphs for comparation, plz refer to [HetioNet
 Shengkun Ni, Xiangtai Kong, Yingying Zhang, et al. Identifying compound-protein interactions with knowledge graph embedding of perturbation transcriptomics. Cell Genom. (2024).
 
 ## Contact
-nishengkun@simm.ac.cn
+nsk25@mails.tsinghua.edu.cn
