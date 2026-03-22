@@ -1,5 +1,5 @@
 import os
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 from time import time
 import pandas as pd
@@ -112,6 +112,9 @@ def five_fold_cv(args):
             model.train()
             for batch in tqdm.tqdm(kgloader):
                 h, t, r = batch[0], batch[1], batch[2]
+                if kgsampler.bern_probs.device != r.device:
+                    # torchkge keeps bern_probs on CPU by default.
+                    kgsampler.bern_probs = kgsampler.bern_probs.to(r.device)
                 n_h, n_t = kgsampler.corrupt_batch(h, t, r)
 
                 optimizer.zero_grad()
@@ -225,7 +228,6 @@ if __name__ == '__main__':
 
     e = time()
     print(f"Total running time: {round(e - s, 2)}s")
-
 
 
 
